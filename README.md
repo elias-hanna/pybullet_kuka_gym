@@ -1,0 +1,1 @@
+Python package containing gym environments with a kuka arm, designed to be used together with evolutionnary algorithms from python package diversity_algorithms.
