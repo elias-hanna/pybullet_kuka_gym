@@ -52,7 +52,6 @@ class KukaVelcroObject(KukaGymEnv):
     # self.observation_space = spaces.Discrete(1)
     self.observation_space = spaces.Box(low=0, high=np.inf, shape=(1,))
     self.action_space = spaces.Box(low=-np.inf, high=np.inf, shape=(8,))
-
     if self._renders:
       self.cid = p.connect(p.SHARED_MEMORY)
       if (self.cid<0):
@@ -61,7 +60,6 @@ class KukaVelcroObject(KukaGymEnv):
     else:
       self.cid = p.connect(p.DIRECT)
     # self._seed()
-
     self.viewer = None
 
   def reset(self):
@@ -70,7 +68,9 @@ class KukaVelcroObject(KukaGymEnv):
     """
     self._time = 0
 
-    p.resetSimulation()
+    ## Use RESET_USE_DEFORMABLE_WORLD to be able to spawn deformable objects in sim
+    # p.resetSimulation()
+    p.resetSimulation(p.RESET_USE_DEFORMABLE_WORLD)
     p.setPhysicsEngineParameter(numSolverIterations=150)
     p.setTimeStep(self._timeStep)
     
@@ -131,6 +131,12 @@ class KukaVelcroObject(KukaGymEnv):
                      -1,
                      linearDamping=.1,
                      lateralFriction=100000)
+
+    # Spawn deformable object
+    path = os.path.expanduser("~") + "/Documents/thesis/codes/preliminary_experiments/dev/bullet3/build_cmake/data/"
+    # bunnyId = p.loadSoftBody(path + "bread.vtk", mass = 1.5, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.01, collisionMargin = 0.006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 400, scale=0.5, basePosition= [0.9, 0, 1], baseOrientation= [1,0,0,1])
+
+    bunnyId = p.loadSoftBody(path + "bread.vtk", mass = 1.5, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.1, collisionMargin = 0.006, useSelfCollision = 1, frictionCoeff = 0.1, scale=0.2, basePosition= [0.9, 0, 0.05], baseOrientation= [1,0,0,1])
 
     # Close the gripper around the object
     self.boxId = linkUid
