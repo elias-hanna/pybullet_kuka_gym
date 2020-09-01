@@ -8,3 +8,8 @@ register(
     id='Velcro1DOF-v0',
     entry_point='gym_pybullet_kuka.velcro_1_dof:KukaVelcroObject'
 )
+
+register(
+    id='Velcro-Deformable-v0',
+    entry_point='gym_pybullet_kuka.velcro_deformable:KukaVelcroObject'
+)

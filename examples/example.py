@@ -1,7 +1,7 @@
 import pybullet as p
 from time import sleep
 import pybullet_data
-import os
+import os, inspect
 import gym_pybullet_kuka.data as data_set
 
 physicsClient = p.connect(p.GUI)
@@ -21,10 +21,17 @@ boxId = p.loadURDF(path + "cube.urdf", [0,3,2],useMaximalCoordinates = True)
 # bunnyId = p.loadSoftBody(path + "torus.vtk", mass = 3, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.01, collisionMargin = 0.006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 800)
 
 basePos=[0,0,-2]
+baseOr = [1, 0, 1, 0]
 # Get data path
-path = os.path.dirname(data_set.__file__) + "/"
+# path = os.path.dirname(data_set.__file__) + "/"
+path = os.path.dirname(inspect.getfile(data_set)) + "/"
 # path = os.path.expanduser("~") + "/"
-bunnyId = p.loadSoftBody(path + "test.vtk", mass = 0.100, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=basePos)
+
+bunnyId = p.loadSoftBody(path + "test.vtk", mass = 0.100, useNeoHookean = 1, NeoHookeanMu = 2000, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=basePos, baseOrientation=baseOr)
+
+p.createSoftBodyAnchor(bunnyId  ,271,-1,-1)
+p.createSoftBodyAnchor(bunnyId  ,372,-1,-1)
+p.createSoftBodyAnchor(bunnyId  ,243,-1,-1)
 
 # bunny2 = p.loadURDF(path + "torus_deform.urdf", [0,1,0], flags=p.URDF_USE_SELF_COLLISION)
 

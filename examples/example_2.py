@@ -20,7 +20,9 @@ boxId = p.loadURDF(path + "cube.urdf", [0,1,2],useMaximalCoordinates = True)
 
 clothId = p.loadSoftBody(path + "cloth_z_up.obj", basePosition = [0,0,2], scale = 0.5, mass = 1., useNeoHookean = 0, useBendingSprings=1,useMassSpring=1, springElasticStiffness=40, springDampingStiffness=.1, springDampingAllDirections = 1, useSelfCollision = 0, frictionCoeff = .5, useFaceContact=1)
 
-
+"""
+Args: SoftObjectID, NodeIndex, BodyUniqueId, LinkIndex, BodyFramePositionObj
+"""
 p.createSoftBodyAnchor(clothId  ,0,-1,-1)
 p.createSoftBodyAnchor(clothId ,1,-1,-1)
 p.createSoftBodyAnchor(clothId ,3,boxId,-1, [0.5,-0.5,0])

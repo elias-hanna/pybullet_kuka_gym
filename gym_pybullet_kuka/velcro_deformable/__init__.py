@@ -1,0 +1,1 @@
+from gym_pybullet_kuka.velcro_deformable.kuka_velcro_object import KukaVelcroObject

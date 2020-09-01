@@ -7,7 +7,8 @@ import numpy as np
 import pdb
 import cv2
 # from kuka_diverse_object_gym_env import KukaDiverseObjectEnv
-from gym_pybullet_kuka.velcro_1_dof import KukaVelcroObject
+# from gym_pybullet_kuka.velcro_1_dof import KukaVelcroObject
+from gym_pybullet_kuka.velcro_deformable import KukaVelcroObject
 # from pybullet_envs.bullet.kukaGymEnv import KukaGymEnv
 
 save_path = './data/train_image/'
