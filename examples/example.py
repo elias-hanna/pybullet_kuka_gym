@@ -28,8 +28,9 @@ baseVisualShapeId = -1
 linkParentIndices = [0]
 
 # Link parameters
-damping = 0.01
-linkMasses = [0.1]
+damping = 0.1
+
+linkMasses = [1.0]
 linkVisualShapeIndices = [-1]
 linkPositions = [[0, 0, 1]]
 linkOrientations = [[0, 0, 0, 1]]
@@ -73,7 +74,7 @@ baseOr = [0, 0, 0, 1]
 # Get data path
 path = os.path.dirname(inspect.getfile(data_set)) + "/"
 
-bunnyId = p.loadSoftBody(path + "test.vtk", mass = 0.5, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 6000, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=basePos, baseOrientation=baseOr)
+bunnyId = p.loadSoftBody(path + "test.vtk", mass = 0.5, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=basePos, baseOrientation=baseOr)
 
 ############################ BOTTOM AREA ######################
 bottomLinkUid = p.createMultiBody(baseMass=baseMass,
