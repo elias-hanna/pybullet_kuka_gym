@@ -70,7 +70,6 @@ class KukaVelcroObject(KukaGymEnv):
     self._time = 0
 
     ## Use RESET_USE_DEFORMABLE_WORLD to be able to spawn deformable objects in sim
-    # p.resetSimulation()
     p.resetSimulation(p.RESET_USE_DEFORMABLE_WORLD)
     p.setPhysicsEngineParameter(numSolverIterations=150)
     p.setTimeStep(self._timeStep)
@@ -90,59 +89,195 @@ class KukaVelcroObject(KukaGymEnv):
 
     p.stepSimulation()
 
-    # Add the object that needs to be manipulated
-    radius = 0.03
-    # sphereId = p.createCollisionShape(p.GEOM_SPHERE, radius=radius)
-    boxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=[radius, radius, radius])
+    # # Add the object that needs to be manipulated
+    # radius = 0.03
+    # # sphereId = p.createCollisionShape(p.GEOM_SPHERE, radius=radius)
+    # boxId = p.createCollisionShape(p.GEOM_BOX, halfExtents=[radius, radius, radius])
 
-    mass = 0.01
-    visualShapeId = -1
-    link_Masses = [10000]
-    linkCollisionShapeIndices = [boxId]
+    # mass = 0.01
+    # visualShapeId = -1
+    # link_Masses = [10000]
+    # linkCollisionShapeIndices = [boxId]
+    # linkVisualShapeIndices = [-1]
+    # linkPositions = [[0, 0, -0.11]]
+    # linkOrientations = [[0, 0, 0, 1]]
+    # linkInertialFramePositions = [[0, 0, 0]]
+    # linkInertialFrameOrientations = [[0, 0, 0, 1]]
+    # indices = [0]
+    # jointTypes = [p.JOINT_PRISMATIC]
+    # axis = self._axes
+    # basePosition = [0.6, 0, -.05]
+    # baseOrientation = [0, 0, 0, 1]
+
+    # linkUid = p.createMultiBody(baseMass=mass,
+    #                             baseCollisionShapeIndex=boxId,
+    #                             baseVisualShapeIndex=visualShapeId,
+    #                             basePosition=basePosition,
+    #                             baseOrientation=baseOrientation,
+    #                             linkMasses=link_Masses,
+    #                             linkCollisionShapeIndices=linkCollisionShapeIndices,
+    #                             linkVisualShapeIndices=linkVisualShapeIndices,
+    #                             linkPositions=linkPositions,
+    #                             linkOrientations=linkOrientations,
+    #                             linkInertialFramePositions=linkInertialFramePositions,
+    #                             linkInertialFrameOrientations=linkInertialFrameOrientations,
+    #                             linkParentIndices=indices,
+    #                             linkJointTypes=jointTypes,
+    #                             linkJointAxis=axis)
+    # Change the link dynamics
+    # p.changeDynamics(linkUid,
+    #                  -1,
+    #                  linearDamping=.1,
+    #                  lateralFriction=100000)
+    
+    ## PARAMETERS ##
+    
+    radius = 0.03
+    boxId = p.createCollisionShape(p.GEOM_BOX,
+                                   halfExtents=[radius, radius, radius])
+    
+    # Link base parameters
+    baseOrientation = [0, 0, 0, 1]
+    baseMass = 0
+    baseVisualShapeId = -1
+    linkParentIndices = [0]
+    
+    # Link parameters
+    damping = 0.1
+    
+    linkMasses = [1.0]
     linkVisualShapeIndices = [-1]
-    linkPositions = [[0, 0, -0.11]]
+    linkPositions = [[0, 0, 1]]
     linkOrientations = [[0, 0, 0, 1]]
     linkInertialFramePositions = [[0, 0, 0]]
     linkInertialFrameOrientations = [[0, 0, 0, 1]]
-    indices = [0]
-    jointTypes = [p.JOINT_PRISMATIC]
-    axis = self._axes
-    basePosition = [0.6, 0, -.05]
-    baseOrientation = [0, 0, 0, 1]
-
-    linkUid = p.createMultiBody(baseMass=mass,
-                                baseCollisionShapeIndex=boxId,
-                                baseVisualShapeIndex=visualShapeId,
-                                basePosition=basePosition,
-                                baseOrientation=baseOrientation,
-                                linkMasses=link_Masses,
-                                linkCollisionShapeIndices=linkCollisionShapeIndices,
-                                linkVisualShapeIndices=linkVisualShapeIndices,
-                                linkPositions=linkPositions,
-                                linkOrientations=linkOrientations,
-                                linkInertialFramePositions=linkInertialFramePositions,
-                                linkInertialFrameOrientations=linkInertialFrameOrientations,
-                                linkParentIndices=indices,
-                                linkJointTypes=jointTypes,
-                                linkJointAxis=axis)
-    # Change the link dynamics
-    p.changeDynamics(linkUid,
-                     -1,
-                     linearDamping=.1,
-                     lateralFriction=100000)
+    linkJointTypes = [p.JOINT_PRISMATIC]
+    linkCollisionShapeIndices = [boxId]
+    
+    # ## SET 1, VERTICAL DEFORMABLE OBJECT ##
+    # # Link parameters (axes and basePosition)
+    # linkJointAxis = [[-1,0, 1]]
+    # basePosition = [0.25, -0.5, -1]
+    
+    # centralLinkJointAxis = [[1,0,0]]
+    # centralBasePosition = [0.25, -1, -1]
+    
+    # upperLinkJointAxis = [[1,0,1]]
+    # upperBasePosition = [0.25, -1.5, -1]
+    
+    # # Deformable object parameters
+    # basePos=[0,0,-1.85]
+    # baseOr = [1, 0, 1, 0]
+    
+    ## SET 2, HORIZONTAL DEFORMABLE OBJECT ##
+    # Link parameters (axes and basePosition)
+    basePosition = [0.25, -0.5, -1]
+    linkJointAxis = [[1,0,1]]
+    
+    centralLinkJointAxis = [[0,0,1]]
+    centralBasePosition = [0.25, -1, -1]
+    
+    upperLinkJointAxis = [[-1,0,1]]
+    upperBasePosition = [0.25, -1.5, -1]
 
     # Spawn deformable object
     deformable_obj_path = os.path.dirname(inspect.getfile(data_set)) + "/"
-    soleBasePos = [0.9, 0, 0]
-    soleBaseOr = [1, 0, 1, 0]
-    soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.100, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
-    # p.createSoftBodyAnchor(linkUid, 
-    # path = os.path.expanduser("~") + "/Documents/thesis/codes/preliminary_experiments/dev/bullet3/build_cmake/data/"
+    soleBasePos = [0.9, 0, -0.2]
+    # soleBaseOr = [1, 0, 1, 0]
+    soleBaseOr = [0, 0, 0, 1]
+    soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.100, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
 
-    # bunnyId = p.loadSoftBody(path + "bread.vtk", mass = 1.5, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.1, collisionMargin = 0.006, useSelfCollision = 1, frictionCoeff = 0.1, scale=0.2, basePosition= [0.9, 0, 0.05], baseOrientation= [1,0,0,1])
+    
+    ############################ BOTTOM AREA ######################
+    bottomLinkUid = p.createMultiBody(baseMass=baseMass,
+                                      baseCollisionShapeIndex=boxId,
+                                      baseVisualShapeIndex=baseVisualShapeId,
+                                      basePosition=basePosition,
+                                      baseOrientation=baseOrientation,
+                                      linkMasses=linkMasses,
+                                      linkCollisionShapeIndices=linkCollisionShapeIndices,
+                                      linkVisualShapeIndices=linkVisualShapeIndices,
+                                      linkPositions=linkPositions,
+                                      linkOrientations=linkOrientations,
+                                      linkInertialFramePositions=linkInertialFramePositions,
+                                      linkInertialFrameOrientations=linkInertialFrameOrientations,
+                                      linkParentIndices=linkParentIndices,
+                                      linkJointTypes=linkJointTypes,
+                                      linkJointAxis=linkJointAxis)
+  
+    # Change the link dynamics
+    p.changeDynamics(bottomLinkUid,
+                     -1,
+                     linearDamping=damping,
+                     lateralFriction=1,
+                     jointDamping=damping)
+    
+    # Create bound between constrained cube and soft body nodes
+    p.createSoftBodyAnchor(soleId, 215, bottomLinkUid, 0)
+    p.createSoftBodyAnchor(soleId, 258, bottomLinkUid, 0)
+    p.createSoftBodyAnchor(soleId, 277, bottomLinkUid, 0)
+
+    ############################ CENTRAL AREA ######################
+    centralLinkUid = p.createMultiBody(baseMass=baseMass,
+                                       baseCollisionShapeIndex=boxId,
+                                       baseVisualShapeIndex=baseVisualShapeId,
+                                       basePosition=centralBasePosition,
+                                       baseOrientation=baseOrientation,
+                                       linkMasses=linkMasses,
+                                       linkCollisionShapeIndices=linkCollisionShapeIndices,
+                                       linkVisualShapeIndices=linkVisualShapeIndices,
+                                       linkPositions=linkPositions,
+                                       linkOrientations=linkOrientations,
+                                       linkInertialFramePositions=linkInertialFramePositions,
+                                       linkInertialFrameOrientations=linkInertialFrameOrientations,
+                                       linkParentIndices=linkParentIndices,
+                                       linkJointTypes=linkJointTypes,
+    linkJointAxis=centralLinkJointAxis)
+    
+    # Change the link dynamics
+    p.changeDynamics(centralLinkUid,
+                     -1,
+                     linearDamping=damping,
+                     lateralFriction=1,
+                     jointDamping=damping)
+    
+    ## Create bound between constrained cube and soft body nodes
+    p.createSoftBodyAnchor(soleId  ,236,centralLinkUid, 0)
+    p.createSoftBodyAnchor(soleId  ,239,centralLinkUid, 0)
+    p.createSoftBodyAnchor(soleId  ,264,centralLinkUid, 0)
+
+    ############################ UPPER AREA ######################
+    upperLinkUid = p.createMultiBody(baseMass=baseMass,
+                                     baseCollisionShapeIndex=boxId,
+                                     baseVisualShapeIndex=baseVisualShapeId,
+                                     basePosition=upperBasePosition,
+                                     baseOrientation=baseOrientation,
+                                     linkMasses=linkMasses,
+                                     linkCollisionShapeIndices=linkCollisionShapeIndices,
+                                     linkVisualShapeIndices=linkVisualShapeIndices,
+                                     linkPositions=linkPositions,
+                                     linkOrientations=linkOrientations,
+                                     linkInertialFramePositions=linkInertialFramePositions,
+                                     linkInertialFrameOrientations=linkInertialFrameOrientations,
+                                     linkParentIndices=linkParentIndices,
+                                     linkJointTypes=linkJointTypes,
+                                     linkJointAxis=upperLinkJointAxis)
+    # Change the link dynamics
+    p.changeDynamics(upperLinkUid,
+                     -1,
+                     linearDamping=damping,
+                     lateralFriction=1,
+                     jointDamping=damping)
+    
+    # # Create bound between constrained cube and soft body nodes
+    p.createSoftBodyAnchor(soleId  ,206,upperLinkUid, 0)
+    p.createSoftBodyAnchor(soleId  ,207,upperLinkUid, 0)
+    p.createSoftBodyAnchor(soleId  ,208,upperLinkUid, 0)
+    p.createSoftBodyAnchor(soleId  ,259,upperLinkUid, 0)
 
     # Close the gripper around the object
-    self.boxId = linkUid
+    # self.boxId = linkUid
+    self.boxId = 0
     
     for i in range(10):
       self._kuka.closeGripper([0.,0.,0.,0.,0.05])
