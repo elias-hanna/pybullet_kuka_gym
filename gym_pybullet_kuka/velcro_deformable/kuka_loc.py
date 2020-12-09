@@ -74,8 +74,9 @@ class Kuka:
     self.endEffectorPos = [0,0,0]
     self.endEffectorAngle = math.pi
     # orn = p.getQuaternionFromEuler([math.pi/2,math.pi/2,math.pi/2])
-    orn = p.getQuaternionFromEuler([math.pi/2,0,0])
-    position = [0.52, 0.21, 0.]
+    # orn = p.getQuaternionFromEuler([math.pi/2,0,0])
+    orn = p.getQuaternionFromEuler([2*math.pi/3,0,0])
+    position = [0.73, 0.3, -0.1]
     
     self.jointPositions = accurateCalculateInverseKinematics(self.kukaUid,
                                                              self.kukaEndEffectorIndex,

@@ -48,6 +48,9 @@ class KukaVelcroObject(KukaGymEnv):
     self._time = 0
     self._max_time = 10 #seconds
     self._axes=axes
+    self._bottomAnchorsConstraintsIds = []
+    self._centralAnchorsConstraintsIds = []
+    self._upperAnchorsConstraintsIds = []
     # Define observation and action space
     # self.action_space = spaces.Discrete(8)
     # self.observation_space = spaces.Discrete(1)
@@ -145,7 +148,7 @@ class KukaVelcroObject(KukaGymEnv):
     soleBasePos = [0.4, 0, -0.2]
     # soleBaseOr = [1, 0, 1, 0]
     soleBaseOr = [0, 0, 0, 1]
-    soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.100, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
+    soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.100, useNeoHookean = 1, NeoHookeanMu = 400, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
 
     
     ############################ BOTTOM AREA ######################
@@ -174,7 +177,7 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     bottomAnchorPointsIndexes = [215, 258, 277]
-    self._createSoftBodyAnchors(soleId, bottomAnchorPointsIndexes, bottomLinkUid, 0)
+    self._bottomAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, bottomAnchorPointsIndexes, bottomLinkUid, 0)
     
     ############################ CENTRAL AREA ######################
     centralLinkUid = p.createMultiBody(baseMass=baseMass,
@@ -202,7 +205,7 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     centralAnchorPointsIndexes = [236, 239, 264]
-    self._createSoftBodyAnchors(soleId, centralAnchorPointsIndexes, centralLinkUid, 0)
+    self._centralAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, centralAnchorPointsIndexes, centralLinkUid, 0)
 
     ############################ UPPER AREA ######################
     upperLinkUid = p.createMultiBody(baseMass=baseMass,
@@ -229,8 +232,11 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     upperAnchorPointsIndexes = [206,207,208,259]
-    self._createSoftBodyAnchors(soleId, upperAnchorPointsIndexes, upperLinkUid, 0)
+    self._upperAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, upperAnchorPointsIndexes, upperLinkUid, 0)
 
+    ##############################################################
+
+    
     # Close the gripper around the object
     # self.boxId = linkUid
     self.boxId = 0
@@ -247,8 +253,17 @@ class KukaVelcroObject(KukaGymEnv):
     """
     Create anchor points between a list of mesh index points and a rigid body
     """
+    constraintsIds = []
     for anchorIndex in listOfAnchors:
-      p.createSoftBodyAnchor(deformableObjectId, anchorIndex, multiBodyId, indexOfBody)
+      constraintsIds.append(p.createSoftBodyAnchor(deformableObjectId, anchorIndex, multiBodyId, indexOfBody))
+    return constraintsIds
+
+  def _removeConstraints(self, constraintsIdsList):
+    """
+    Remove constraints from the simulator which ids are specified in constraintIdsList
+    """
+    for id in constraintsIdsList:
+      p.removeConstraint(id)
   
   def _distance_end_eff_object(self, objectId):
     objectPosition = p.getBasePositionAndOrientation(objectId)[0]
@@ -308,6 +323,7 @@ class KukaVelcroObject(KukaGymEnv):
     # WARNING: need to set self._kuka.useInverseKinematics to false !
     self._kuka.applyAction(actions)
     self._kuka.closeGripper([0.,0.,0.,0.,0.05])
+    
     ### Third step: evaluate the output of the behavior ###
     ### Return the distance between the original position of the cube and its last position ###
     self._update_sim()

@@ -12,8 +12,9 @@ p.resetSimulation(p.RESET_USE_DEFORMABLE_WORLD)
 
 p.setGravity(0, 0, -10)
 
-path = os.path.expanduser("~") + "/Documents/thesis/codes/preliminary_experiments/dev/bullet3/build_cmake/data/"
-planeId = p.loadURDF(path + "plane.urdf", [0,0,-2])
+# path = os.path.expanduser("~") + "/Documents/thesis/codes/preliminary_experiments/dev/bullet3/build_cmake/data/"
+# planeId = p.loadURDF(path + "plane.urdf", [0,0,-2])
+planeId = p.loadURDF("plane.urdf", [0,0,-2])
 
 ## PARAMETERS ##
 
@@ -28,7 +29,7 @@ baseVisualShapeId = -1
 linkParentIndices = [0]
 
 # Link parameters
-damping = 0.1
+damping = 0.01
 
 linkMasses = [1.0]
 linkVisualShapeIndices = [-1]
@@ -74,7 +75,7 @@ baseOr = [0, 0, 0, 1]
 # Get data path
 path = os.path.dirname(inspect.getfile(data_set)) + "/"
 
-bunnyId = p.loadSoftBody(path + "test.vtk", mass = 0.5, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=basePos, baseOrientation=baseOr)
+bunnyId = p.loadSoftBody(path + "test.vtk", mass = 0.5, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 600, NeoHookeanDamping = 0.1, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=basePos, baseOrientation=baseOr)
 
 ############################ BOTTOM AREA ######################
 bottomLinkUid = p.createMultiBody(baseMass=baseMass,
@@ -97,7 +98,7 @@ bottomLinkUid = p.createMultiBody(baseMass=baseMass,
 p.changeDynamics(bottomLinkUid,
                  -1,
                  linearDamping=damping,
-                 lateralFriction=1,
+                 # lateralFriction=1,
                  jointDamping=damping)
 
 # Create bound between constrained cube and soft body nodes
