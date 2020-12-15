@@ -51,6 +51,9 @@ class KukaVelcroObject(KukaGymEnv):
     self._bottomAnchorsConstraintsIds = []
     self._centralAnchorsConstraintsIds = []
     self._upperAnchorsConstraintsIds = []
+    self._bottomAxisLength = 0.01
+    self._centralAxisLength = 0.05
+    self._upperAxisLength = 0.05
     # Define observation and action space
     # self.action_space = spaces.Discrete(8)
     # self.observation_space = spaces.Discrete(1)
@@ -105,9 +108,9 @@ class KukaVelcroObject(KukaGymEnv):
     linkParentIndices = [0]
     
     # Link parameters
-    damping = 0.1
+    damping = 0
     
-    linkMasses = [1.0]
+    linkMasses = [0.5]
     linkVisualShapeIndices = [-1]
     linkPositions = [[0, 0, 1]]
     linkOrientations = [[0, 0, 0, 1]]
@@ -148,28 +151,28 @@ class KukaVelcroObject(KukaGymEnv):
     soleBasePos = [0.4, 0, -0.2]
     # soleBaseOr = [1, 0, 1, 0]
     soleBaseOr = [0, 0, 0, 1]
-    soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.100, useNeoHookean = 1, NeoHookeanMu = 400, NeoHookeanLambda = 600, NeoHookeanDamping = 0.25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
+    soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.300, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 1000, NeoHookeanDamping = .25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
 
     
     ############################ BOTTOM AREA ######################
-    bottomLinkUid = p.createMultiBody(baseMass=baseMass,
-                                      baseCollisionShapeIndex=boxId,
-                                      baseVisualShapeIndex=baseVisualShapeId,
-                                      basePosition=basePosition,
-                                      baseOrientation=baseOrientation,
-                                      linkMasses=linkMasses,
-                                      linkCollisionShapeIndices=linkCollisionShapeIndices,
-                                      linkVisualShapeIndices=linkVisualShapeIndices,
-                                      linkPositions=linkPositions,
-                                      linkOrientations=linkOrientations,
-                                      linkInertialFramePositions=linkInertialFramePositions,
-                                      linkInertialFrameOrientations=linkInertialFrameOrientations,
-                                      linkParentIndices=linkParentIndices,
-                                      linkJointTypes=linkJointTypes,
-                                      linkJointAxis=linkJointAxis)
-  
+    self._bottomLinkUid = p.createMultiBody(baseMass=baseMass,
+                                            baseCollisionShapeIndex=boxId,
+                                            baseVisualShapeIndex=baseVisualShapeId,
+                                            basePosition=basePosition,
+                                            baseOrientation=baseOrientation,
+                                            linkMasses=linkMasses,
+                                            linkCollisionShapeIndices=linkCollisionShapeIndices,
+                                            linkVisualShapeIndices=linkVisualShapeIndices,
+                                            linkPositions=linkPositions,
+                                            linkOrientations=linkOrientations,
+                                            linkInertialFramePositions=linkInertialFramePositions,
+                                            linkInertialFrameOrientations=linkInertialFrameOrientations,
+                                            linkParentIndices=linkParentIndices,
+                                            linkJointTypes=linkJointTypes,
+                                            linkJointAxis=linkJointAxis)
+    
     # Change the link dynamics
-    p.changeDynamics(bottomLinkUid,
+    p.changeDynamics(self._bottomLinkUid,
                      -1,
                      linearDamping=damping,
                      lateralFriction=1,
@@ -177,27 +180,30 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     bottomAnchorPointsIndexes = [215, 258, 277]
-    self._bottomAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, bottomAnchorPointsIndexes, bottomLinkUid, 0)
+    self._bottomAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, bottomAnchorPointsIndexes, self._bottomLinkUid, 0)
+
+    # Get the initial axis length
+    self._initialBottomAxisLength = self._currentAxisLength(self._bottomLinkUid)
     
     ############################ CENTRAL AREA ######################
-    centralLinkUid = p.createMultiBody(baseMass=baseMass,
-                                       baseCollisionShapeIndex=boxId,
-                                       baseVisualShapeIndex=baseVisualShapeId,
-                                       basePosition=centralBasePosition,
-                                       baseOrientation=baseOrientation,
-                                       linkMasses=linkMasses,
-                                       linkCollisionShapeIndices=linkCollisionShapeIndices,
-                                       linkVisualShapeIndices=linkVisualShapeIndices,
-                                       linkPositions=linkPositions,
-                                       linkOrientations=linkOrientations,
-                                       linkInertialFramePositions=linkInertialFramePositions,
-                                       linkInertialFrameOrientations=linkInertialFrameOrientations,
-                                       linkParentIndices=linkParentIndices,
-                                       linkJointTypes=linkJointTypes,
-    linkJointAxis=centralLinkJointAxis)
+    self._centralLinkUid = p.createMultiBody(baseMass=baseMass,
+                                             baseCollisionShapeIndex=boxId,
+                                             baseVisualShapeIndex=baseVisualShapeId,
+                                             basePosition=centralBasePosition,
+                                             baseOrientation=baseOrientation,
+                                             linkMasses=linkMasses,
+                                             linkCollisionShapeIndices=linkCollisionShapeIndices,
+                                             linkVisualShapeIndices=linkVisualShapeIndices,
+                                             linkPositions=linkPositions,
+                                             linkOrientations=linkOrientations,
+                                             linkInertialFramePositions=linkInertialFramePositions,
+                                             linkInertialFrameOrientations=linkInertialFrameOrientations,
+                                             linkParentIndices=linkParentIndices,
+                                             linkJointTypes=linkJointTypes,
+                                             linkJointAxis=centralLinkJointAxis)
     
     # Change the link dynamics
-    p.changeDynamics(centralLinkUid,
+    p.changeDynamics(self._centralLinkUid,
                      -1,
                      linearDamping=damping,
                      lateralFriction=1,
@@ -205,26 +211,30 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     centralAnchorPointsIndexes = [236, 239, 264]
-    self._centralAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, centralAnchorPointsIndexes, centralLinkUid, 0)
+    self._centralAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, centralAnchorPointsIndexes, self._centralLinkUid, 0)
 
+    # Get the initial axis length
+    self._initialCentralAxisLength = self._currentAxisLength(self._centralLinkUid)
+    
     ############################ UPPER AREA ######################
-    upperLinkUid = p.createMultiBody(baseMass=baseMass,
-                                     baseCollisionShapeIndex=boxId,
-                                     baseVisualShapeIndex=baseVisualShapeId,
-                                     basePosition=upperBasePosition,
-                                     baseOrientation=baseOrientation,
-                                     linkMasses=linkMasses,
-                                     linkCollisionShapeIndices=linkCollisionShapeIndices,
-                                     linkVisualShapeIndices=linkVisualShapeIndices,
-                                     linkPositions=linkPositions,
-                                     linkOrientations=linkOrientations,
-                                     linkInertialFramePositions=linkInertialFramePositions,
-                                     linkInertialFrameOrientations=linkInertialFrameOrientations,
-                                     linkParentIndices=linkParentIndices,
-                                     linkJointTypes=linkJointTypes,
-                                     linkJointAxis=upperLinkJointAxis)
+    self._upperLinkUid = p.createMultiBody(baseMass=baseMass,
+                                           baseCollisionShapeIndex=boxId,
+                                           baseVisualShapeIndex=baseVisualShapeId,
+                                           basePosition=upperBasePosition,
+                                           baseOrientation=baseOrientation,
+                                           linkMasses=linkMasses,
+                                           linkCollisionShapeIndices=linkCollisionShapeIndices,
+                                           linkVisualShapeIndices=linkVisualShapeIndices,
+                                           linkPositions=linkPositions,
+                                           linkOrientations=linkOrientations,
+                                           linkInertialFramePositions=linkInertialFramePositions,
+                                           linkInertialFrameOrientations=linkInertialFrameOrientations,
+                                           linkParentIndices=linkParentIndices,
+                                           linkJointTypes=linkJointTypes,
+                                           linkJointAxis=upperLinkJointAxis)
+    
     # Change the link dynamics
-    p.changeDynamics(upperLinkUid,
+    p.changeDynamics(self._upperLinkUid,
                      -1,
                      linearDamping=damping,
                      lateralFriction=1,
@@ -232,9 +242,16 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     upperAnchorPointsIndexes = [206,207,208,259]
-    self._upperAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, upperAnchorPointsIndexes, upperLinkUid, 0)
+    self._upperAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, upperAnchorPointsIndexes, self._upperLinkUid, 0)
 
+    # Get the initial axis length
+    self._initialUpperAxisLength = self._currentAxisLength(self._upperLinkUid)
+    
     ##############################################################
+    
+    # Create bound between end-effector and soft body nodes
+    contactPointAnchorPointsIndexes = [180, 252, 253, 274, 276]
+    self._centralAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, contactPointAnchorPointsIndexes, self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
 
     
     # Close the gripper around the object
@@ -266,10 +283,32 @@ class KukaVelcroObject(KukaGymEnv):
       p.removeConstraint(id)
   
   def _distance_end_eff_object(self, objectId):
+    """
+    Return distance between object specified by its ID and end effector of the robot
+    """
     objectPosition = p.getBasePositionAndOrientation(objectId)[0]
     endEffPosition = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)[0]
     return np.linalg.norm(np.subtract(objectPosition, endEffPosition))
 
+  def _distance_between_objects(self, objectId1, objectId2):
+    """
+    Return distance between two objects specified by their IDs
+    """
+    print("obj1 0: ", p.getLinkState(objectId1, 0)[0])
+    objectPosition1 = p.getBasePositionAndOrientation(objectId1)[0]
+    print("obj1: ", p.getBasePositionAndOrientation(objectId1))
+    objectPosition2 = p.getBasePositionAndOrientation(objectId2)[0]
+    print("obj2: ", p.getBasePositionAndOrientation(objectId2))
+    return np.linalg.norm(np.subtract(objectPosition1, objectPosition2))
+
+  def _currentAxisLength(self, axisId):
+    """
+    Return distance between two objects specified by their IDs
+    """
+    movingCubePos =  p.getLinkState(axisId, 0)[0]
+    baseCubePos = p.getBasePositionAndOrientation(axisId)[0]
+    return np.linalg.norm(np.subtract(movingCubePos, baseCubePos))
+  
   def _observation(self):
     """
     Return the current time.
@@ -296,8 +335,25 @@ class KukaVelcroObject(KukaGymEnv):
     """
     Update the simulation parameters
     """
-    # time.sleep(self._timeStep)
+    time.sleep(self._timeStep)
     self._time += self._timeStep
+
+    ### Handle the removal of axes if length has gone past the max axis length
+    # Bottom Axis
+    if(self._currentAxisLength(self._bottomLinkUid) - self._initialBottomAxisLength > self._bottomAxisLength):
+      self._removeConstraints(self._bottomAnchorsConstraintsIds)
+      print("Deleted bottom axis !")
+
+    # Central Axis
+    if(self._currentAxisLength(self._centralLinkUid) - self._initialCentralAxisLength > self._centralAxisLength):
+      self._removeConstraints(self._centralAnchorsConstraintsIds)
+      print("Deleted central axis !")
+
+    # Upper Axis
+    if(self._currentAxisLength(self._upperLinkUid) - self._initialUpperAxisLength > self._upperAxisLength):
+      self._removeConstraints(self._upperAnchorsConstraintsIds)
+      print("Deleted upper axis !")
+      
     p.stepSimulation()
 
   def render(self):
@@ -311,7 +367,7 @@ class KukaVelcroObject(KukaGymEnv):
     Set the axi(e)s to the given one(s) in arg
     """
     self._axes = axes
-    
+
   def step(self,actions):
     """
     Action is the motor commands as outputed by the controller
@@ -329,7 +385,6 @@ class KukaVelcroObject(KukaGymEnv):
     self._update_sim()
 
     # Handle end cases
-    endEffBoxDist = self._distance_end_eff_object(self.boxId)
     
     if((self._time > self._max_time) or (abs(endEffBoxDist - self.initialEndEffBoxDist) > 0.02)):
       end = True
