@@ -51,7 +51,7 @@ class KukaVelcroObject(KukaGymEnv):
     self._bottomAnchorsConstraintsIds = []
     self._centralAnchorsConstraintsIds = []
     self._upperAnchorsConstraintsIds = []
-    self._bottomAxisLength = 0.01
+    self._bottomAxisLength = 0.05
     self._centralAxisLength = 0.05
     self._upperAxisLength = 0.05
     # Define observation and action space
@@ -279,6 +279,7 @@ class KukaVelcroObject(KukaGymEnv):
     """
     Remove constraints from the simulator which ids are specified in constraintIdsList
     """
+    print(constraintsIdsList)
     for id in constraintsIdsList:
       p.removeConstraint(id)
   
@@ -341,16 +342,19 @@ class KukaVelcroObject(KukaGymEnv):
     ### Handle the removal of axes if length has gone past the max axis length
     # Bottom Axis
     if(self._currentAxisLength(self._bottomLinkUid) - self._initialBottomAxisLength > self._bottomAxisLength):
+      self._bottomAxisLength = math.inf
       self._removeConstraints(self._bottomAnchorsConstraintsIds)
       print("Deleted bottom axis !")
 
     # Central Axis
     if(self._currentAxisLength(self._centralLinkUid) - self._initialCentralAxisLength > self._centralAxisLength):
+      self._centralAxisLength = math.inf
       self._removeConstraints(self._centralAnchorsConstraintsIds)
       print("Deleted central axis !")
 
     # Upper Axis
     if(self._currentAxisLength(self._upperLinkUid) - self._initialUpperAxisLength > self._upperAxisLength):
+      self._upperAxisLength = math.inf
       self._removeConstraints(self._upperAnchorsConstraintsIds)
       print("Deleted upper axis !")
       
@@ -386,7 +390,9 @@ class KukaVelcroObject(KukaGymEnv):
 
     # Handle end cases
     
-    if((self._time > self._max_time) or (abs(endEffBoxDist - self.initialEndEffBoxDist) > 0.02)):
+    if((self._time > self._max_time)
+       or (abs(endEffBoxDist - self.initialEndEffBoxDist) > 0.02)
+       or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))):
       end = True
     
     return self._observation(), self._reward(), end, self._infos()
