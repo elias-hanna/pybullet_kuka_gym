@@ -317,7 +317,7 @@ class KukaVelcroObject(KukaGymEnv):
     Return the distance between the object and its initial pose
     """
     currentSolePosition = p.getBasePositionAndOrientation(self._soleId)[0]
-    distance = np.linalg.norm(np.subtract(currentSolePosition, self.initialSolePosition))
+    distance = np.linalg.norm(np.subtract(currentSolePosition, self._initialSolePosition))
     return distance
 
   def _infos(self):
@@ -392,7 +392,7 @@ class KukaVelcroObject(KukaGymEnv):
     endEffSoleDist = self._distance_end_eff_object(self._soleId)
 
     if((self._time > self._max_time)
-       or (abs(endEffBoxDist - self._initialEndEffSoleDist) > 0.2)
+       or (abs(endEffSoleDist - self._initialEndEffSoleDist) > 0.2)
        or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))):
       end = True
     
