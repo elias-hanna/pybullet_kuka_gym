@@ -329,7 +329,7 @@ class KukaVelcroObject(KukaGymEnv):
     infos['central_axis_pos'] = p.getLinkState(self._centralLinkUid, 0)[0]
     infos['upper_axis_pos'] = p.getLinkState(self._upperLinkUid, 0)[0]
     infos['end_effector_pos'] = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)[0]
-    infos['cube_pos'] = p.getBasePositionAndOrientation(self.boxId)[0]
+    infos['sole_pos'] = p.getBasePositionAndOrientation(self._soleId)[0]
     return infos
 
   def _update_sim(self):
