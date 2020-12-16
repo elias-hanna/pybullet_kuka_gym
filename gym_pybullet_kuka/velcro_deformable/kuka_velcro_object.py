@@ -151,9 +151,9 @@ class KukaVelcroObject(KukaGymEnv):
     soleBasePos = [0.4, 0, -0.2]
     # soleBaseOr = [1, 0, 1, 0]
     soleBaseOr = [0, 0, 0, 1]
-    soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.300, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 1000, NeoHookeanDamping = .25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
-
     
+    self._soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.300, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 1000, NeoHookeanDamping = .25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
+
     ############################ BOTTOM AREA ######################
     self._bottomLinkUid = p.createMultiBody(baseMass=baseMass,
                                             baseCollisionShapeIndex=boxId,
@@ -180,7 +180,7 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     bottomAnchorPointsIndexes = [215, 258, 277]
-    self._bottomAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, bottomAnchorPointsIndexes, self._bottomLinkUid, 0)
+    self._bottomAnchorsConstraintsIds = self._createSoftBodyAnchors(self._soleId, bottomAnchorPointsIndexes, self._bottomLinkUid, 0)
 
     # Get the initial axis length
     self._initialBottomAxisLength = self._currentAxisLength(self._bottomLinkUid)
@@ -211,7 +211,7 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     centralAnchorPointsIndexes = [236, 239, 264]
-    self._centralAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, centralAnchorPointsIndexes, self._centralLinkUid, 0)
+    self._centralAnchorsConstraintsIds = self._createSoftBodyAnchors(self._soleId, centralAnchorPointsIndexes, self._centralLinkUid, 0)
 
     # Get the initial axis length
     self._initialCentralAxisLength = self._currentAxisLength(self._centralLinkUid)
@@ -242,7 +242,7 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between constrained cube and soft body nodes
     upperAnchorPointsIndexes = [206,207,208,259]
-    self._upperAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, upperAnchorPointsIndexes, self._upperLinkUid, 0)
+    self._upperAnchorsConstraintsIds = self._createSoftBodyAnchors(self._soleId, upperAnchorPointsIndexes, self._upperLinkUid, 0)
 
     # Get the initial axis length
     self._initialUpperAxisLength = self._currentAxisLength(self._upperLinkUid)
@@ -251,7 +251,7 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between end-effector and soft body nodes
     contactPointAnchorPointsIndexes = [180, 252, 253, 274, 276]
-    self._gripperAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, contactPointAnchorPointsIndexes, self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
+    self._gripperAnchorsConstraintsIds = self._createSoftBodyAnchors(self._soleId, contactPointAnchorPointsIndexes, self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
 
     
     # Close the gripper around the object
@@ -262,8 +262,8 @@ class KukaVelcroObject(KukaGymEnv):
       self._kuka.closeGripper([0.,0.,0.,0.,0.05])
       p.stepSimulation()
 
-    self.initialBoxPosition = p.getBasePositionAndOrientation(self.boxId)[0]
-    self.initialEndEffBoxDist = self._distance_end_eff_object(self.boxId)
+    self._initialSolePosition = p.getBasePositionAndOrientation(self._soleId)[0]
+    self._initialEndEffSoleDist = self._distance_end_eff_object(self._soleId)
     return self._observation()
 
   def _createSoftBodyAnchors(self, deformableObjectId, listOfAnchors, multiBodyId, indexOfBody):
@@ -279,7 +279,6 @@ class KukaVelcroObject(KukaGymEnv):
     """
     Remove constraints from the simulator which ids are specified in constraintIdsList
     """
-    print(constraintsIdsList)
     for id in constraintsIdsList:
       p.removeConstraint(id)
   
@@ -295,16 +294,13 @@ class KukaVelcroObject(KukaGymEnv):
     """
     Return distance between two objects specified by their IDs
     """
-    print("obj1 0: ", p.getLinkState(objectId1, 0)[0])
     objectPosition1 = p.getBasePositionAndOrientation(objectId1)[0]
-    print("obj1: ", p.getBasePositionAndOrientation(objectId1))
     objectPosition2 = p.getBasePositionAndOrientation(objectId2)[0]
-    print("obj2: ", p.getBasePositionAndOrientation(objectId2))
     return np.linalg.norm(np.subtract(objectPosition1, objectPosition2))
 
   def _currentAxisLength(self, axisId):
     """
-    Return distance between two objects specified by their IDs
+    Return current distance between the two cubes forming what we call an axis
     """
     movingCubePos =  p.getLinkState(axisId, 0)[0]
     baseCubePos = p.getBasePositionAndOrientation(axisId)[0]
@@ -320,8 +316,8 @@ class KukaVelcroObject(KukaGymEnv):
     """
     Return the distance between the object and its initial pose
     """
-    currentBoxPosition = p.getBasePositionAndOrientation(self.boxId)[0]
-    distance = np.linalg.norm(np.subtract(currentBoxPosition, self.initialBoxPosition))
+    currentSolePosition = p.getBasePositionAndOrientation(self._soleId)[0]
+    distance = np.linalg.norm(np.subtract(currentSolePosition, self.initialSolePosition))
     return distance
 
   def _infos(self):
@@ -329,6 +325,10 @@ class KukaVelcroObject(KukaGymEnv):
     Return some info about the task
     """
     infos = {}
+    infos['bottom_axis_pos'] = p.getLinkState(self._bottomLinkUid, 0)[0]
+    infos['central_axis_pos'] = p.getLinkState(self._centralLinkUid, 0)[0]
+    infos['upper_axis_pos'] = p.getLinkState(self._upperLinkUid, 0)[0]
+    infos['end_effector_pos'] = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)[0]
     infos['cube_pos'] = p.getBasePositionAndOrientation(self.boxId)[0]
     return infos
 
@@ -344,19 +344,19 @@ class KukaVelcroObject(KukaGymEnv):
     if(self._currentAxisLength(self._bottomLinkUid) - self._initialBottomAxisLength > self._bottomAxisLength):
       self._bottomAxisLength = math.inf
       self._removeConstraints(self._bottomAnchorsConstraintsIds)
-      print("Deleted bottom axis !")
+      #print("Deleted bottom axis !")
 
     # Central Axis
     if(self._currentAxisLength(self._centralLinkUid) - self._initialCentralAxisLength > self._centralAxisLength):
       self._centralAxisLength = math.inf
       self._removeConstraints(self._centralAnchorsConstraintsIds)
-      print("Deleted central axis !")
+      #print("Deleted central axis !")
 
     # Upper Axis
     if(self._currentAxisLength(self._upperLinkUid) - self._initialUpperAxisLength > self._upperAxisLength):
       self._upperAxisLength = math.inf
       self._removeConstraints(self._upperAnchorsConstraintsIds)
-      print("Deleted upper axis !")
+      #print("Deleted upper axis !")
       
     p.stepSimulation()
 
@@ -389,9 +389,10 @@ class KukaVelcroObject(KukaGymEnv):
     self._update_sim()
 
     # Handle end cases
-    
+    endEffSoleDist = self._distance_end_eff_object(self._soleId)
+
     if((self._time > self._max_time)
-       or (abs(endEffBoxDist - self.initialEndEffBoxDist) > 0.02)
+       or (abs(endEffBoxDist - self._initialEndEffSoleDist) > 0.2)
        or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))):
       end = True
     

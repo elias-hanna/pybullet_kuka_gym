@@ -132,12 +132,6 @@ class KukaVelcroObject(KukaGymEnv):
                      linearDamping=.1,
                      lateralFriction=100000)
 
-    # Spawn deformable object
-    path = os.path.expanduser("~") + "/Documents/thesis/codes/preliminary_experiments/dev/bullet3/build_cmake/data/"
-    # bunnyId = p.loadSoftBody(path + "bread.vtk", mass = 1.5, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.01, collisionMargin = 0.006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 400, scale=0.5, basePosition= [0.9, 0, 1], baseOrientation= [1,0,0,1])
-
-    bunnyId = p.loadSoftBody(path + "bread.vtk", mass = 1.5, useNeoHookean = 1, NeoHookeanMu = 180, NeoHookeanLambda = 600, NeoHookeanDamping = 0.1, collisionMargin = 0.006, useSelfCollision = 1, frictionCoeff = 0.1, scale=0.2, basePosition= [0.9, 0, 0.05], baseOrientation= [1,0,0,1])
-
     # Close the gripper around the object
     self.boxId = linkUid
     
