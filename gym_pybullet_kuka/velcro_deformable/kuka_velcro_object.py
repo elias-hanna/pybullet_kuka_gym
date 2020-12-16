@@ -251,7 +251,7 @@ class KukaVelcroObject(KukaGymEnv):
     
     # Create bound between end-effector and soft body nodes
     contactPointAnchorPointsIndexes = [180, 252, 253, 274, 276]
-    self._centralAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, contactPointAnchorPointsIndexes, self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
+    self._gripperAnchorsConstraintsIds = self._createSoftBodyAnchors(soleId, contactPointAnchorPointsIndexes, self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)
 
     
     # Close the gripper around the object
