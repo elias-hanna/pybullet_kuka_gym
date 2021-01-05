@@ -46,7 +46,10 @@ class KukaVelcroObject(KukaGymEnv):
     self._renders = renders
     self.envId = uuid.uuid4()
     self._time = 0
-    self._max_time = 10 #seconds
+    self._realCurrentTime = time.perf_counter()
+    self._realPreviousTime = time.perf_counter() 
+    self._max_time = 20 #seconds
+    self._firstRun = True
     self._axes=axes
     self._bottomAnchorsConstraintsIds = []
     self._centralAnchorsConstraintsIds = []
@@ -153,6 +156,8 @@ class KukaVelcroObject(KukaGymEnv):
     soleBaseOr = [0, 0, 0, 1]
     
     self._soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.300, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 1000, NeoHookeanDamping = .25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
+
+    self._previousSolePos = p.getBasePositionAndOrientation(self._soleId)[0]
 
     ############################ BOTTOM AREA ######################
     self._bottomLinkUid = p.createMultiBody(baseMass=baseMass,
@@ -336,9 +341,16 @@ class KukaVelcroObject(KukaGymEnv):
     """
     Update the simulation parameters
     """
-    time.sleep(self._timeStep)
-    self._time += self._timeStep
-
+    ### Handle time related things
+    # time.sleep(self._timeStep)
+    self._time += self._timeStep # this one is fictionnal simulation time
+    if(self._firstRun):
+      self._realPreviousTime = time.perf_counter()
+      self._realCurrentTime = time.perf_counter()
+    else:
+      self._realPreviousTime = self._realCurrentTime
+      self._realCurrentTime = time.perf_counter()
+      
     ### Handle the removal of axes if length has gone past the max axis length
     # Bottom Axis
     if(self._currentAxisLength(self._bottomLinkUid) - self._initialBottomAxisLength > self._bottomAxisLength):
@@ -372,6 +384,19 @@ class KukaVelcroObject(KukaGymEnv):
     """
     self._axes = axes
 
+  def _hasExploded(self, threshold):
+    """
+    """
+    solePos = p.getBasePositionAndOrientation(self._soleId)[0]
+    ## Check if center of mass of the sole has moved too abruptedly
+    stepDist = np.linalg.norm(np.subtract(solePos, self._previousSolePos))
+    if(stepDist > threshold):
+      return True
+    
+    self._previousSolePos = solePos
+    return False
+    pass
+
   def step(self,actions):
     """
     Action is the motor commands as outputed by the controller
@@ -393,7 +418,9 @@ class KukaVelcroObject(KukaGymEnv):
 
     if((self._time > self._max_time)
        or (abs(endEffSoleDist - self._initialEndEffSoleDist) > 0.2)
-       or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))):
+       or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))
+       or self._hasExploded(0.005)
+       or (self._realCurrentTime - self._realPreviousTime) > 0.3):
       end = True
     
     return self._observation(), self._reward(), end, self._infos()
