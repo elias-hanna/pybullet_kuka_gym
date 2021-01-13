@@ -57,6 +57,7 @@ class KukaVelcroObject(KukaGymEnv):
     self._bottomAxisLength = 0.05
     self._centralAxisLength = 0.05
     self._upperAxisLength = 0.05
+    self._hasExplodedFlag = False
     # Define observation and action space
     # self.action_space = spaces.Discrete(8)
     # self.observation_space = spaces.Discrete(1)
@@ -155,7 +156,7 @@ class KukaVelcroObject(KukaGymEnv):
     # soleBaseOr = [1, 0, 1, 0]
     soleBaseOr = [0, 0, 0, 1]
     
-    self._soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.300, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 1000, NeoHookeanDamping = .25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
+    self._soleId = p.loadSoftBody(deformable_obj_path + "test.vtk", mass = 0.500, useNeoHookean = 1, NeoHookeanMu = 4000, NeoHookeanLambda = 1000, NeoHookeanDamping = .25, collisionMargin = 0.0006, useSelfCollision = 1, frictionCoeff = 0.5, repulsionStiffness = 1, scale=1, basePosition=soleBasePos, baseOrientation=soleBaseOr)
 
     self._previousSolePos = p.getBasePositionAndOrientation(self._soleId)[0]
 
@@ -335,6 +336,7 @@ class KukaVelcroObject(KukaGymEnv):
     infos['upper_axis_pos'] = p.getLinkState(self._upperLinkUid, 0)[0]
     infos['end_effector_pos'] = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)[0]
     infos['sole_pos'] = p.getBasePositionAndOrientation(self._soleId)[0]
+    infos['has_exploded'] = self._hasExplodedFlag
     return infos
 
   def _update_sim(self):
@@ -416,11 +418,16 @@ class KukaVelcroObject(KukaGymEnv):
     # Handle end cases
     endEffSoleDist = self._distance_end_eff_object(self._soleId)
 
+    ## Handling normal end cases
     if((self._time > self._max_time)
        or (abs(endEffSoleDist - self._initialEndEffSoleDist) > 0.2)
-       or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))
-       or self._hasExploded(0.005)
-       or (self._realCurrentTime - self._realPreviousTime) > 0.3):
+       or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))):
+      end = True
+
+    ## Handling explosion end cases
+    if(self._hasExploded(0.005)
+       or (self._realCurrentTime - self._realPreviousTime) > 0.2):
+      self._hasExplodedFlag = True
       end = True
     
     return self._observation(), self._reward(), end, self._infos()
