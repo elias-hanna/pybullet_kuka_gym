@@ -57,6 +57,9 @@ class KukaVelcroObject(KukaGymEnv):
     self._bottomAxisLength = 0.05
     self._centralAxisLength = 0.05
     self._upperAxisLength = 0.05
+    self._bottomAxisRemoved = False
+    self._centralAxisRemoved = False
+    self._upperAxisRemoved = False
     self._hasExplodedFlag = False
     # Define observation and action space
     # self.action_space = spaces.Discrete(8)
@@ -331,12 +334,16 @@ class KukaVelcroObject(KukaGymEnv):
     Return some info about the task
     """
     infos = {}
-    infos['bottom_axis_pos'] = p.getLinkState(self._bottomLinkUid, 0)[0]
-    infos['central_axis_pos'] = p.getLinkState(self._centralLinkUid, 0)[0]
-    infos['upper_axis_pos'] = p.getLinkState(self._upperLinkUid, 0)[0]
+    # infos['bottom_axis_pos'] = p.getLinkState(self._bottomLinkUid, 0)[0]
+    # infos['central_axis_pos'] = p.getLinkState(self._centralLinkUid, 0)[0]
+    # infos['upper_axis_pos'] = p.getLinkState(self._upperLinkUid, 0)[0]
+    infos['bottom_axis_end_length'] = self._currentAxisLength(self._bottomLinkUid) - self._initialBottomAxisLength
+    infos['central_axis_end_length'] = self._currentAxisLength(self._centralLinkUid) - self._initialCentralAxisLength
+    infos['upper_axis_end_length'] = self._currentAxisLength(self._upperLinkUid) - self._initialUpperAxisLength
     infos['end_effector_pos'] = p.getLinkState(self._kuka.kukaUid, self._kuka.kukaEndEffectorIndex)[0]
     infos['sole_pos'] = p.getBasePositionAndOrientation(self._soleId)[0]
     infos['has_exploded'] = self._hasExplodedFlag
+    infos['end_time'] = self._time
     return infos
 
   def _update_sim(self):
@@ -356,19 +363,19 @@ class KukaVelcroObject(KukaGymEnv):
     ### Handle the removal of axes if length has gone past the max axis length
     # Bottom Axis
     if(self._currentAxisLength(self._bottomLinkUid) - self._initialBottomAxisLength > self._bottomAxisLength):
-      self._bottomAxisLength = math.inf
+      self._bottomAxisRemoved = True
       self._removeConstraints(self._bottomAnchorsConstraintsIds)
       #print("Deleted bottom axis !")
 
     # Central Axis
     if(self._currentAxisLength(self._centralLinkUid) - self._initialCentralAxisLength > self._centralAxisLength):
-      self._centralAxisLength = math.inf
+      self._centralAxisRemoved = True
       self._removeConstraints(self._centralAnchorsConstraintsIds)
       #print("Deleted central axis !")
 
     # Upper Axis
     if(self._currentAxisLength(self._upperLinkUid) - self._initialUpperAxisLength > self._upperAxisLength):
-      self._upperAxisLength = math.inf
+      self._upperAxisRemoved = True
       self._removeConstraints(self._upperAnchorsConstraintsIds)
       #print("Deleted upper axis !")
       
@@ -421,7 +428,7 @@ class KukaVelcroObject(KukaGymEnv):
     ## Handling normal end cases
     if((self._time > self._max_time)
        or (abs(endEffSoleDist - self._initialEndEffSoleDist) > 0.2)
-       or (math.isinf(self._bottomAxisLength) and math.isinf(self._centralAxisLength) and math.isinf(self._upperAxisLength))):
+       or (self._bottomAxisRemoved and self._centralAxisRemoved and self._upperAxisRemoved)):
       end = True
 
     ## Handling explosion end cases
