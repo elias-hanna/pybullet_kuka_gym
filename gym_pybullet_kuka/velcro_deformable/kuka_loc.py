@@ -37,7 +37,7 @@ class Kuka:
                useInverseKinematics=True):
     self.urdfRootPath = urdfRootPath
     self.timeStep = timeStep
-    self.maxVelocity = .35
+    self.maxVelocity = .01
     self.maxForce = 200
     self.fingerAForce = 100
     self.fingerBForce = 100
@@ -85,7 +85,8 @@ class Kuka:
                                                              0.01,
                                                              1000)
     
-    self.jointPositions = list(self.jointPositions)[0:8]+[-0.299912, 0.000000, -0.000043, 0.299960, 0.000000, -0.000200]
+    # self.jointPositions = list(self.jointPositions)[0:8]+[-0.299912, 0.000000, -0.000043, 0.299960, 0.000000, -0.000200]
+    self.jointPositions = list(self.jointPositions)[0:8]+[0, 0.000000, -0.000043, 0, 0.000000, -0.000200]
     
     ### Initial Method ###
     # self.jointPositions=[ 0.006418, 0.413184, -0.011401, -1.589317, 0.005379, 1.137684, -0.006539, 0.000048, -0.299912, 0.000000, -0.000043, 0.299960, 0.000000, -0.000200]
